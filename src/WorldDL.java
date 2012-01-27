@@ -45,7 +45,7 @@ public class WorldDL {
 		
 		downloading = true; // Everything set up.
 		
-		mc.ingameGUI.addChatMessage("ßc[WorldDL] ß6Download started.");
+		mc.ingameGUI.addChatMessage("\u00a76[WorldDL] \u00a74Download started.");
     }
     
     public static void continueDownload( WorldClient newWc )
@@ -67,7 +67,7 @@ public class WorldDL {
     	
     	newWc.myChunkLoader = mySaveHandler.getChunkLoader( newWc.worldProvider );
     	
-    	mc.ingameGUI.addChatMessage("ßc[WorldDL] ß6Continuing download.");
+    	mc.ingameGUI.addChatMessage("\u00a76[WorldDL] \u00a74Continuing download.");
     	
     	wc = newWc;
     }
@@ -85,7 +85,7 @@ public class WorldDL {
 		
 		downloading = false; // We're done here.
 		
-		mc.ingameGUI.addChatMessage("ßc[WorldDL] ß6Download stopped.");
+		mc.ingameGUI.addChatMessage("\u00a76[WorldDL] \u00a74Download stopped.");
     }
 
     // Helper method to get the world folder's size in bytes
@@ -161,7 +161,7 @@ public class WorldDL {
 	    {
 	    	ArrayList activePlayerList = new ArrayList(1);
 	    	activePlayerList.add(mc.thePlayer);
-	        NBTTagCompound temp = super.getNBTTagCompoundWithPlayer(activePlayerList);
+	        NBTTagCompound temp = super.getNBTTagCompoundWithPlayers(activePlayerList);
 	        if( mc.thePlayer.capabilities.allowFlying && mc.thePlayer.capabilities.depleteBuckets && mc.thePlayer.capabilities.disableDamage )
 	        	temp.setInteger("GameType", 1); // Creative
 	        else
