@@ -39,7 +39,6 @@ public class Chunk
     public Map myChunkTileEntityMap; // Copy of the TileEntity data that only my code touches (never overwritten by junk)
     /* <--- WORLD DOWNLOADER */
 
-    
     public Chunk(World world, int i, int j)
     {
         precipitationHeightMap = new int[256];
@@ -349,11 +348,11 @@ public class Chunk
         blocks[i << worldObj.xShift | k << worldObj.heightShift | j] = (byte)(byte0 & 0xff);
         if (l1 != 0)
         {
-            if (!worldObj.multiplayerWorld)
+            if (!worldObj.isRemote)
             {
                 Block.blocksList[l1].onBlockRemoval(worldObj, i2, j, j2);
             }
-            else if ((Block.blocksList[l1] instanceof BlockContainer) && l1 != l)
+            else if (Block.blocksList[l1] != null && Block.blocksList[l1].hasTileEntity(getBlockMetadata(i, j, k)) && l1 != l)
             {
                 worldObj.removeBlockTileEntity(i2, j, j2);
             }
@@ -379,30 +378,22 @@ public class Chunk
         data.setNibble(i, j, k, i1);
         if (l != 0)
         {
-            if (!worldObj.multiplayerWorld)
+            if (!worldObj.isRemote)
             {
                 Block.blocksList[l].onBlockAdded(worldObj, i2, j, j2);
             }
-            if (Block.blocksList[l] instanceof BlockContainer)
+            if (Block.blocksList[l] != null && Block.blocksList[l].hasTileEntity(i1))
             {
                 TileEntity tileentity = getChunkBlockTileEntity(i, j, k);
                 if (tileentity == null)
                 {
-                    tileentity = ((BlockContainer)Block.blocksList[l]).getBlockEntity();
+                    tileentity = Block.blocksList[l].getTileEntity(i1);
                     worldObj.setBlockTileEntity(i2, j, j2, tileentity);
                 }
                 if (tileentity != null)
                 {
                     tileentity.updateContainingBlockInfo();
                 }
-            }
-        }
-        else if (l1 > 0 && (Block.blocksList[l1] instanceof BlockContainer))
-        {
-            TileEntity tileentity1 = getChunkBlockTileEntity(i, j, k);
-            if (tileentity1 != null)
-            {
-                tileentity1.updateContainingBlockInfo();
             }
         }
         isModified = true;
@@ -428,7 +419,11 @@ public class Chunk
         blocks[i << worldObj.xShift | k << worldObj.heightShift | j] = (byte)(byte0 & 0xff);
         if (k1 != 0)
         {
-            Block.blocksList[k1].onBlockRemoval(worldObj, l1, j, i2);
+        	if (!worldObj.isRemote) 
+        	{
+        		Block.blocksList[k1].onBlockRemoval(worldObj, l1, j, i2);
+        	}
+        	removeChunkBlockTileEntity(i, j, k);
         }
         data.setNibble(i, j, k, 0);
         if (Block.lightOpacity[byte0 & 0xff] != 0)
@@ -447,30 +442,24 @@ public class Chunk
         propagateSkylightOcclusion(i, k);
         if (l != 0)
         {
-            if (!worldObj.multiplayerWorld)
+            if (!worldObj.isRemote)
             {
                 Block.blocksList[l].onBlockAdded(worldObj, l1, j, i2);
             }
-            if (l > 0 && (Block.blocksList[l] instanceof BlockContainer))
+            int meta = getBlockMetadata(i, j, k);
+            if (l > 0 && Block.blocksList[l] != null && Block.blocksList[l].hasTileEntity(meta))
             {
                 TileEntity tileentity = getChunkBlockTileEntity(i, j, k);
                 if (tileentity == null)
                 {
-                    tileentity = ((BlockContainer)Block.blocksList[l]).getBlockEntity();
+                    tileentity = Block.blocksList[l].getTileEntity(meta);
                     worldObj.setBlockTileEntity(l1, j, i2, tileentity);
                 }
                 if (tileentity != null)
                 {
                     tileentity.updateContainingBlockInfo();
+                    tileentity.blockMetadata = meta;
                 }
-            }
-        }
-        else if (k1 > 0 && (Block.blocksList[k1] instanceof BlockContainer))
-        {
-            TileEntity tileentity1 = getChunkBlockTileEntity(i, j, k);
-            if (tileentity1 != null)
-            {
-                tileentity1.updateContainingBlockInfo();
             }
         }
         isModified = true;
@@ -492,7 +481,7 @@ public class Chunk
         }
         data.setNibble(i, j, k, l);
         int j1 = getBlockID(i, j, k);
-        if (j1 > 0 && (Block.blocksList[j1] instanceof BlockContainer))
+        if (j1 > 0 && Block.blocksList[j1] != null && Block.blocksList[j1].hasTileEntity(i1))
         {
             TileEntity tileentity = getChunkBlockTileEntity(i, j, k);
             if (tileentity != null)
@@ -609,29 +598,27 @@ public class Chunk
     {
         ChunkPosition chunkposition = new ChunkPosition(i, j, k);
         TileEntity tileentity = (TileEntity)chunkTileEntityMap.get(chunkposition);
+        if (tileentity != null && tileentity.isInvalid())
+        {
+        	chunkTileEntityMap.remove(chunkposition);
+        	tileentity = null;
+        }
         if (tileentity == null)
         {
             int l = getBlockID(i, j, k);
-            if (!Block.isBlockContainer[l])
+            int meta = getBlockMetadata(i, j, k);
+            if (Block.blocksList[l] == null || !Block.blocksList[l].hasTileEntity(meta))
             {
                 return null;
             }
             if (tileentity == null)
             {
-                tileentity = ((BlockContainer)Block.blocksList[l]).getBlockEntity();
+                tileentity = Block.blocksList[l].getTileEntity(meta);
                 worldObj.setBlockTileEntity(xPosition * 16 + i, j, zPosition * 16 + k, tileentity);
             }
             tileentity = (TileEntity)chunkTileEntityMap.get(chunkposition);
         }
-        if (tileentity != null && tileentity.isInvalid())
-        {
-            chunkTileEntityMap.remove(chunkposition);
-            return null;
-        }
-        else
-        {
-            return tileentity;
-        }
+        return tileentity;
     }
 
     public void addTileEntity(TileEntity tileentity)
@@ -642,7 +629,7 @@ public class Chunk
         setChunkBlockTileEntity(i, j, k, tileentity);
         if (isChunkLoaded)
         {
-            worldObj.loadedTileEntityList.add(tileentity);
+            worldObj.addTileEntity(tileentity);
         }
     }
 
@@ -653,12 +640,18 @@ public class Chunk
         tileentity.xCoord = xPosition * 16 + i;
         tileentity.yCoord = j;
         tileentity.zCoord = zPosition * 16 + k;
-        if (getBlockID(i, j, k) == 0 || !(Block.blocksList[getBlockID(i, j, k)] instanceof BlockContainer))
+        int id = getBlockID(i, j, k);
+        if (id == 0 || Block.blocksList[id] == null || !Block.blocksList[id].hasTileEntity(getBlockMetadata(i, j, k)))
         {
             return;
         }
         else
         {
+        	TileEntity old = (TileEntity)chunkTileEntityMap.get(chunkposition);
+        	if (old != null) 
+    		{
+        		old.invalidate();
+    		}
             tileentity.validate();
             chunkTileEntityMap.put(chunkposition, tileentity);
             return;
@@ -692,7 +685,7 @@ public class Chunk
     {
         isChunkLoaded = false;
         TileEntity tileentity;
-        for (Iterator iterator = chunkTileEntityMap.values().iterator(); iterator.hasNext(); worldObj.markEntityForDespawn(tileentity))
+        for (Iterator iterator = chunkTileEntityMap.values().iterator(); iterator.hasNext(); worldObj.markTileEntityForDespawn(tileentity))
         {
             tileentity = (TileEntity)iterator.next();
         }
@@ -805,6 +798,16 @@ public class Chunk
     public int setChunkData(byte abyte0[], int i, int j, int k, int l, int i1, int j1,
             int k1)
     {
+    	TileEntity te;
+    	Iterator iterator = chunkTileEntityMap.values().iterator();
+    	while (iterator.hasNext())
+    	{
+    		te = (TileEntity)iterator.next();
+    		te.updateContainingBlockInfo();
+    		te.getBlockMetadata();
+    		te.getBlockType();
+    	}
+    	
         for (int l1 = i; l1 < l; l1++)
         {
             for (int l2 = k; l2 < j1; l2++)
@@ -850,12 +853,31 @@ public class Chunk
             }
         }
 
-        TileEntity tileentity;
-        for (Iterator iterator = chunkTileEntityMap.values().iterator(); iterator.hasNext(); tileentity.updateContainingBlockInfo())
+        List<TileEntity> invalidList=new ArrayList();
+        iterator = chunkTileEntityMap.values().iterator(); 
+        while(iterator.hasNext()) 
         {
-            tileentity = (TileEntity)iterator.next();
+            te = (TileEntity)iterator.next();
+            if ((te.xCoord & 15) >= i && (te.xCoord & 15) <= l &&
+		        (te.yCoord >= j) && (te.yCoord <= i1) &&
+		        (te.zCoord & 15) >= k && (te.zCoord & 15) <=j1) 
+            {
+            	
+			    Block bl = te.getBlockType();
+			    if (bl != null && 
+			        bl.blockID == worldObj.getBlockId(te.xCoord, te.yCoord, te.zCoord) &&
+				    te.getBlockMetadata() == worldObj.getBlockMetadata(te.xCoord, te.yCoord, te.zCoord))
+				    continue;
+			    
+			    invalidList.add(te);
+            }
         }
 
+        for(TileEntity te2 : invalidList)
+        {
+        	te2.invalidate();
+        }
+        
         /* WORLD DOWNLOADER ---> */
         isFilled = true;
         /* <--- WORLD DOWNLOADER */
@@ -865,7 +887,7 @@ public class Chunk
 
     public Random getRandomWithSeed(long l)
     {
-        return new Random(worldObj.getWorldSeed() + (long)(xPosition * xPosition * 0x4c1906) + (long)(xPosition * 0x5ac0db) + (long)(zPosition * zPosition) * 0x4307a7L + (long)(zPosition * 0x5f24f) ^ l);
+        return new Random(worldObj.getSeed() + (long)(xPosition * xPosition * 0x4c1906) + (long)(xPosition * 0x5ac0db) + (long)(zPosition * zPosition) * 0x4307a7L + (long)(zPosition * 0x5f24f) ^ l);
     }
 
     public boolean isEmpty()
@@ -936,6 +958,21 @@ public class Chunk
     {
         return new ChunkCoordIntPair(xPosition, zPosition);
     }
+    
+    /* FORGE: Used to remove only invalid TileEntities */
+    public void cleanChunkBlockTileEntity(int i, int j, int k) 
+    {
+    	ChunkPosition chunkposition = new ChunkPosition(i, j, k);
+    	if (isChunkLoaded)
+    	{
+    		TileEntity tileentity = (TileEntity)chunkTileEntityMap.get(chunkposition);
+    		if (tileentity != null && tileentity.isInvalid())
+    		{
+    			chunkTileEntityMap.remove(chunkposition);
+    		}
+    	}
+    }
+    
 	/* WORLD DOWNLOADER ---> */
 	public void importOldChunkTileEntities()
 	{

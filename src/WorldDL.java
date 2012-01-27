@@ -45,7 +45,7 @@ public class WorldDL {
 		
 		downloading = true; // Everything set up.
 		
-		mc.ingameGUI.addChatMessage("§c[WorldDL] §6Download started.");
+		mc.ingameGUI.addChatMessage("ÃŸc[WorldDL] ÃŸ6Download started.");
     }
     
     public static void continueDownload( WorldClient newWc )
@@ -55,7 +55,7 @@ public class WorldDL {
     	
     	WorldInfo wi = newWc.worldInfo;
     	if(    !serverHostname.equals( lastServerHostname )
-    		|| wi.getRandomSeed() != lastSeed
+    		|| wi.getSeed() != lastSeed
     		|| newWc.worldProvider.worldType == lastDimension )
     	{
     		downloading = false; // Don't save anything from the new world
@@ -67,7 +67,7 @@ public class WorldDL {
     	
     	newWc.myChunkLoader = mySaveHandler.getChunkLoader( newWc.worldProvider );
     	
-    	mc.ingameGUI.addChatMessage("§c[WorldDL] §6Continuing download.");
+    	mc.ingameGUI.addChatMessage("ÃŸc[WorldDL] ÃŸ6Continuing download.");
     	
     	wc = newWc;
     }
@@ -85,7 +85,7 @@ public class WorldDL {
 		
 		downloading = false; // We're done here.
 		
-		mc.ingameGUI.addChatMessage("§c[WorldDL] §6Download stopped.");
+		mc.ingameGUI.addChatMessage("ÃŸc[WorldDL] ÃŸ6Download stopped.");
     }
 
     // Helper method to get the world folder's size in bytes
@@ -157,7 +157,7 @@ public class WorldDL {
 			super(worldinfo);
 		}
 		
-	    public NBTTagCompound getNBTTagCompoundWithPlayer(List list)
+	    public NBTTagCompound getNBTTagCompoundWithPlayers(List list)
 	    {
 	    	ArrayList activePlayerList = new ArrayList(1);
 	    	activePlayerList.add(mc.thePlayer);

@@ -29,7 +29,7 @@ public class WorldClient extends World
         mapStorage = netclienthandler.mapStorage;
         /* WORLD DOWNLOADER ---> */
         WorldDL.continueDownload( this ); // Will only continue if it was running before
-        WorldDL.lastSeed = worldInfo.getRandomSeed();
+        WorldDL.lastSeed = worldInfo.getSeed();
         WorldDL.lastDimension = i;
         WorldDL.lastServerHostname = WorldDL.serverHostname;
         /* <--- WORLD DOWNLOADER */
