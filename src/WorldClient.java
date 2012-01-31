@@ -86,7 +86,7 @@ public class WorldClient extends World
     	/* <--- WORLD DOWNLOADER */
     }
 
-    protected void updateBlocksAndPlayCaveSounds()
+    protected void tickBlocksAndAmbiance()
     {
     }
 

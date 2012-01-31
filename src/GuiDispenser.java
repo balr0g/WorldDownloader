@@ -5,9 +5,9 @@ import org.lwjgl.opengl.GL11;
 
 public class GuiDispenser extends GuiContainer
 {
-    /* World Downloader >>> */
+    /* WORLD DOWNLOADER ---> */
     private TileEntityDispenser ted;
-    /* <<< World Downloader */
+    /* <--- WORLD DOWNLOADER */
     
     public GuiDispenser(InventoryPlayer inventoryplayer, TileEntityDispenser tileentitydispenser)
     {
